@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load lab_tags %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+{% include "dbms_lab/_nav.html" %}
+<p><a href="{% url 'lab_queries' %}#cat-{{ item.category }}">← {{ item.category }}. {{ category }}</a></p>
+<h1>{{ item.title }} <span class="kind {{ item.kind }}">{{ item.kind }}</span></h1>
+
+<div class="card">
+  <dl class="explain">
+    <dt>DBMS concept</dt><dd>{{ item.concept }}</dd>
+    <dt>Objective</dt><dd>{{ item.objective }}</dd>
+    {% if item.tables %}<dt>Tables involved</dt><dd><div class="tables-flow">{% for t in item.tables %}<span class="tbl">{{ t }}</span>{% if not forloop.last %}<span class="arrow">⋈</span>{% endif %}{% endfor %}</div></dd>{% endif %}
+    {% if item.joins %}<dt>Join conditions</dt><dd class="mono">{{ item.joins }}</dd>{% endif %}
+    {% if item.filters %}<dt>Filters</dt><dd class="mono">{{ item.filters }}</dd>{% endif %}
+    {% if item.tuple %}<dt>One result tuple</dt><dd>{{ item.tuple }}</dd>{% endif %}
+    {% if item.columns %}<dt>Columns</dt><dd><ul style="margin:0;padding-left:1.1rem">{% for k, v in item.columns.items %}<li><code>{{ k }}</code> — {{ v }}</li>{% endfor %}</ul></dd>{% endif %}
+  </dl>
+  {% if item.notes %}<div class="note" style="margin-top:.8rem">{{ item.notes }}</div>{% endif %}
+</div>
+
+{% if item.kind == 'select' %}
+  <h2>SQL</h2>
+  <pre class="sql">{{ item.sql }}</pre>
+  <div class="row">
+    <a class="btn {% if mode == 'run' %}{% else %}secondary{% endif %}" href="?mode=run">Run</a>
+    <a class="btn {% if mode == 'explain' %}{% else %}secondary{% endif %}" href="?mode=explain">EXPLAIN</a>
+    <a class="btn {% if mode == 'analyze' %}{% else %}secondary{% endif %}" href="?mode=analyze">EXPLAIN ANALYZE</a>
+    <a class="btn secondary" href="{% url 'lab_editor' %}?from={{ item.slug }}">Open in editor</a>
+  </div>
+  <h2>Result {% if mode != 'run' %}<span class="muted small">(query plan)</span>{% endif %}</h2>
+  {% if rejected %}<div class="card err-box"><pre>{{ rejected }}</pre></div>{% endif %}
+  {% include "dbms_lab/_result.html" %}
+
+{% elif item.kind == 'compare' %}
+  <h2>SQL</h2><pre class="sql">{{ item.sql }}</pre>
+  <div class="grid-2">
+    <div><h3>1 · Planner free to use indexes</h3>
+      <p class="small">Measured execution time: <strong>{{ plan_default.exec_time|default:"n/a" }}</strong></p>
+      {% if plan_default.ok %}{% include "dbms_lab/_plan.html" with res=plan_default %}{% else %}<pre>{{ plan_default.error }}</pre>{% endif %}</div>
+    <div><h3>2 · Index scans disabled (SET LOCAL enable_indexscan = off …)</h3>
+      <p class="small">Measured execution time: <strong>{{ plan_noindex.exec_time|default:"n/a" }}</strong></p>
+      {% if plan_noindex.ok %}{% include "dbms_lab/_plan.html" with res=plan_noindex %}{% else %}<pre>{{ plan_noindex.error }}</pre>{% endif %}</div>
+  </div>
+  <p><a class="btn secondary" href="">Re-run</a></p>
+
+{% else %}
+  <h2>Statements (fixed, executed in one transaction)</h2>
+  <pre class="sql">BEGIN;
+{% for s in item.steps %}{{ s.sql }}
+{% endfor %}ROLLBACK;  -- always: the live data is never changed</pre>
+  <form method="post" action="{% url 'lab_sandbox' item.slug %}">{% csrf_token %}<button class="btn purple">Run in sandbox transaction</button></form>
+  {% if ran %}
+    <h2>Execution trace</h2>
+    <div class="card">
+      <div class="mono small muted">BEGIN;</div><br>
+      {% for s in steps %}
+        <div class="step {% if s.ok %}ok{% elif s.expect_error %}expected{% else %}err{% endif %}">
+          <div class="small"><strong>Step {{ forloop.counter }}</strong>
+            {% if s.ok %}<span class="badge confirmed">ok</span>{% elif s.expect_error %}<span class="badge pending">rejected by PostgreSQL (expected)</span>{% else %}<span class="badge cancelled">error</span>{% endif %}
+            {% if s.status %}<span class="muted">· {{ s.status }}</span>{% endif %}
+            <span class="muted">· {{ s.duration_ms|floatformat:2 }} ms</span>
+            {% if s.note %}<span class="muted">· {{ s.note }}</span>{% endif %}</div>
+          <pre class="sql">{{ s.sql }}</pre>
+          {% if s.ok and s.columns %}
+            <div class="table-wrap"><table><thead><tr>{% for c in s.columns %}<th>{{ c.name }}<span class="type">{{ c.type }}</span></th>{% endfor %}</tr></thead>
+              <tbody>{% for row in s.rows %}<tr>{% for v in row %}<td>{{ v|cell }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ s.columns|length }}" class="muted">0 rows</td></tr>{% endfor %}</tbody></table></div>
+            <div class="small muted">{{ s.row_count }} row{{ s.row_count|pluralize }}</div>
+          {% elif not s.ok %}
+            <div class="err-box" style="padding-left:.6rem"><span class="small">SQLSTATE <strong>{{ s.error_code }}</strong></span><pre>{{ s.error }}</pre></div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="mono small"><strong>ROLLBACK;</strong> <span class="muted">— every change above has been undone.</span></div>
+    </div>
+    {% if verify %}
+      <h3>Verification after ROLLBACK (new read-only transaction)</h3>
+      <pre class="sql">{{ item.verify_sql }}</pre>
+      {% include "dbms_lab/_result.html" with result=verify %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

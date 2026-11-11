@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Hi, {{ user.name }}</h1>
+<div class="stats">
+  <div class="stat"><div class="label">Total bookings</div><div class="value">{{ summary.total }}</div></div>
+  <div class="stat"><div class="label">Upcoming</div><div class="value">{{ upcoming|length }}</div></div>
+  <div class="stat"><div class="label">Cancelled</div><div class="value">{{ summary.cancelled }}</div></div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <h3>Upcoming bookings</h3>
+    {% for b in upcoming %}
+      <div class="row small" style="padding:.35rem 0;border-bottom:1px dashed #e1e5ee">
+        <a href="{% url 'booking_detail' b.booking_id %}">#{{ b.booking_id }}</a>
+        {{ b.court.court_name }} @ {{ b.court.facility.name }} · {{ b.start_time|date:"D d M, H:i" }}
+        <span class="spacer"></span><span class="badge {{ b.status }}">{{ b.status }}</span>
+      </div>
+    {% empty %}<p class="muted">No upcoming bookings. <a href="{% url 'facility_list' %}">Find a court</a>.</p>{% endfor %}
+  </div>
+  <div class="card">
+    <h3>Waiting for your review</h3>
+    {% for b in to_review %}
+      <div class="row small" style="padding:.35rem 0">
+        <a href="{% url 'booking_detail' b.booking_id %}">#{{ b.booking_id }}</a> {{ b.court.court_name }} · {{ b.start_time|date:"d M" }}
+        <span class="spacer"></span><a class="btn sm" href="{% url 'booking_detail' b.booking_id %}#review">Review</a>
+      </div>
+    {% empty %}<p class="muted">Nothing to review.</p>{% endfor %}
+  </div>
+</div>
+<p><a class="btn" href="{% url 'booking_list' %}">Full booking history</a> <a class="btn secondary" href="{% url 'facility_list' %}">Book a court</a></p>
+{% endblock %}

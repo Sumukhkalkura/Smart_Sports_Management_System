@@ -1,0 +1,13 @@
+{% load lab_tags %}
+{% if res.plan_nodes %}<div class="small" style="margin-bottom:.3rem">Plan nodes found:
+  {% for n in res.plan_nodes %}<span class="badge">{{ n }}</span> {% endfor %}</div>{% endif %}
+<pre class="plan">{% for line in res.plan_lines %}{{ line|plan_line }}
+{% endfor %}</pre>
+<details class="small"><summary>How to read this plan</summary>
+  <ul>
+    <li>The plan is a tree; the most indented nodes run first and feed their parents.</li>
+    <li><strong>Seq Scan</strong> reads every page of the table without using an index. <strong>Index Scan</strong> walks an index to find matching rows; <strong>Index Only Scan</strong> answers from the index alone; <strong>Bitmap</strong> scans collect matching row locations first, then visit the table.</li>
+    <li><code>cost=startup..total</code> is the planner's <em>estimate</em> in arbitrary units; <code>rows</code> is the estimated row count. The planner chooses the cheapest plan based on table statistics (<code>ANALYZE</code>).</li>
+    <li>With ANALYZE, <code>actual time=…</code> (ms), <code>rows</code> and <code>loops</code> are real measurements; "Execution Time" is the measured total.</li>
+    <li>An index does not make every query faster: for small tables or queries returning a large fraction of rows, a sequential scan is cheaper.</li>
+  </ul></details>

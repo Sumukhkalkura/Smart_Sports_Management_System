@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Courts{% endblock %}
+{% block content %}
+<div class="row"><h1>Courts</h1><span class="spacer"></span><a class="btn" href="{% url 'manage_court_new' %}">+ New court</a></div>
+{% include "manage/_nav.html" %}
+<p class="small muted">Courts with booking history are never deleted (FK <code>bookings.court_id</code> uses NO ACTION); deactivate them instead.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>court_id</th><th>Facility</th><th>Court</th><th>Sport</th><th>Rate/h</th><th>Active bookings</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for c in courts %}
+    <tr><td>{{ c.court_id }}</td><td>{{ c.facility.name }}</td><td><a href="{% url 'court_detail' c.court_id %}">{{ c.court_name }}</a></td>
+      <td>{{ c.sport.name }}</td><td class="num">₹{{ c.hourly_rate }}</td><td class="num">{{ c.bookings_n }}</td>
+      <td>{% if c.is_active %}<span class="badge active">active</span>{% else %}<span class="badge inactive">inactive</span>{% endif %}</td>
+      <td class="row"><a class="btn sm secondary" href="{% url 'manage_court_edit' c.court_id %}">Edit</a>
+        <form method="post" class="inline" action="{% url 'manage_court_toggle' c.court_id %}">{% csrf_token %}
+          <button class="btn sm {% if c.is_active %}danger{% else %}success{% endif %}">{% if c.is_active %}Deactivate{% else %}Activate{% endif %}</button></form></td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}

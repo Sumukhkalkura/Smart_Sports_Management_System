@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:2rem auto">
+  <h1>Log in</h1>
+  <form method="post" class="form">{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<p>{{ field.label_tag }}{{ field }}{{ field.errors }}</p>{% endfor %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn">Log in</button>
+  </form>
+  <p class="small muted">No account? <a href="{% url 'register' %}">Register</a></p>
+  <p class="small muted">Demo: <code>aarav.sharma@example.com</code> / <code>Player@12345</code> · admin <code>admin@sportsms.local</code> / <code>Admin@12345</code></p>
+</div>
+{% endblock %}

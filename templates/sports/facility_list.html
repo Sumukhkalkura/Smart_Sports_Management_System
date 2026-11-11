@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Facilities{% endblock %}
+{% block content %}
+<h1>Facilities</h1>
+<form method="get" class="filters">
+  <label>City<br><select name="city"><option value="">All cities</option>
+    {% for c in cities %}<option value="{{ c }}" {% if c == selected_city %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+  <label>Sport<br><select name="sport"><option value="">All sports</option>
+    {% for s in sports %}<option value="{{ s.sport_id }}" {% if s.sport_id|stringformat:"s" == selected_sport %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+  <button class="btn">Filter</button>
+  {% if selected_city or selected_sport %}<a class="btn secondary" href="{% url 'facility_list' %}">Clear</a>{% endif %}
+</form>
+<div class="grid">
+  {% for f in facilities %}
+  <div class="card">
+    <h3><a href="{% url 'facility_detail' f.facility_id %}">{{ f.name }}</a></h3>
+    <div class="muted small">{{ f.address }}, {{ f.city }}</div>
+    <div class="muted small">☎ {{ f.phone }}</div>
+    <p class="small">{{ f.court_count }} active court{{ f.court_count|pluralize }}{% if f.min_rate %} · from ₹{{ f.min_rate|floatformat:0 }}/h{% endif %}
+      {% if f.avg_rating %} · <span class="stars">★</span> {{ f.avg_rating|floatformat:1 }}{% endif %}</p>
+    <a class="btn sm" href="{% url 'facility_detail' f.facility_id %}">View courts</a>
+  </div>
+  {% empty %}<p class="muted">No facilities match these filters.</p>{% endfor %}
+</div>
+{% endblock %}

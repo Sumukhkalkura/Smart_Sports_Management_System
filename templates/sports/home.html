@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Book a court in seconds.</h1>
+  <p>Discover sports facilities, check live court availability, book a time slot, pay and review — all backed by a PostgreSQL database with constraints that make double-booking impossible.</p>
+  <div class="row" style="margin-top:1rem">
+    <a class="btn" href="{% url 'facility_list' %}">Browse facilities</a>
+    {% if not user.is_authenticated %}<a class="btn secondary" href="{% url 'register' %}">Create an account</a>{% endif %}
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="label">Facilities</div><div class="value">{{ stats.facilities }}</div></div>
+  <div class="stat"><div class="label">Active courts</div><div class="value">{{ stats.active_courts }}</div></div>
+  <div class="stat"><div class="label">Upcoming bookings</div><div class="value">{{ stats.upcoming_bookings }}</div></div>
+  <div class="stat"><div class="label">Players</div><div class="value">{{ stats.customers }}</div></div>
+  <div class="stat"><div class="label">Avg rating</div><div class="value">{{ stats.avg_rating|default:"–" }}</div></div>
+</div>
+
+<h2>Sports</h2>
+<div class="row" style="margin-bottom:1rem">
+  {% for s in sports %}<a class="badge" href="{% url 'facility_list' %}?sport={{ s.sport_id }}">{{ s.name }}</a>{% endfor %}
+</div>
+
+<h2>Facilities</h2>
+<div class="grid">
+  {% for f in facilities %}
+  <div class="card">
+    <h3><a href="{% url 'facility_detail' f.facility_id %}">{{ f.name }}</a></h3>
+    <div class="muted small">{{ f.city }} · {{ f.address }}</div>
+    <p class="small">{{ f.court_count }} active court{{ f.court_count|pluralize }}{% if f.min_rate %} · from ₹{{ f.min_rate|floatformat:0 }}/hour{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

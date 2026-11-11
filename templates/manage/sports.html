@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sports{% endblock %}
+{% block content %}
+<h1>Sports</h1>
+{% include "manage/_nav.html" %}
+<div class="grid-2">
+  <div class="table-wrap"><table>
+    <thead><tr><th>sport_id</th><th>Name</th><th>Courts</th></tr></thead>
+    <tbody>{% for s in sports %}<tr><td>{{ s.sport_id }}</td><td>{{ s.name }}</td><td class="num">{{ s.courts_n }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="card"><h3>Add a sport</h3>
+    <form method="post" class="form" novalidate>{% csrf_token %}{{ form.non_field_errors }}
+      {% for field in form %}<p>{{ field.label_tag }}{{ field }}{{ field.errors }}</p>{% endfor %}
+      <button class="btn">Add</button></form>
+    <p class="small muted">Names are unique case-insensitively (unique index on <code>lower(name)</code>).</p></div>
+</div>
+{% endblock %}

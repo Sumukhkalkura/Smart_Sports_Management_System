@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Booking #{{ booking.booking_id }}{% endblock %}
+{% block content %}
+<p><a href="{% if user.is_admin %}{% url 'manage_bookings' %}{% else %}{% url 'booking_list' %}{% endif %}">← Bookings</a></p>
+<h1>Booking #{{ booking.booking_id }} <span class="badge {{ booking.status }}">{{ booking.status }}</span></h1>
+<div class="grid-2">
+  <div class="card">
+    <h3>Details <span class="muted small">(row of <code>bookings</code>)</span></h3>
+    <dl class="explain">
+      <dt>Customer</dt><dd>{{ booking.user.name }}</dd>
+      <dt>Facility</dt><dd>{{ booking.court.facility.name }}, {{ booking.court.facility.city }}</dd>
+      <dt>Court</dt><dd>{{ booking.court.court_name }} ({{ booking.court.sport.name }})</dd>
+      <dt>Start</dt><dd>{{ booking.start_time|date:"l, d M Y H:i" }}</dd>
+      <dt>End</dt><dd>{{ booking.end_time|date:"l, d M Y H:i" }}</dd>
+      <dt>Duration</dt><dd>{{ booking.duration_hours|floatformat:1 }} h</dd>
+      <dt>Total amount</dt><dd><strong>₹{{ booking.total_amount }}</strong></dd>
+      <dt>Created</dt><dd>{{ booking.created_at|date:"d M Y H:i" }}</dd>
+    </dl>
+    {% if can_cancel %}
+      <form method="post" action="{% url 'booking_cancel' booking.booking_id %}" style="margin-top:1rem"
+            onsubmit="return confirm('Cancel this booking?');">{% csrf_token %}
+        <button class="btn danger">Cancel booking</button></form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Payment <span class="muted small">(row of <code>payments</code>, PK = booking_id)</span></h3>
+    {% if payment %}
+      <dl class="explain">
+        <dt>Status</dt><dd><span class="badge {{ payment.payment_status }}">{{ payment.payment_status }}</span></dd>
+        <dt>Method</dt><dd>{{ payment.get_payment_method_display }}</dd>
+        <dt>Amount</dt><dd>₹{{ payment.amount }}</dd>
+        <dt>Paid at</dt><dd>{{ payment.paid_at|date:"d M Y H:i"|default:"–" }}</dd>
+      </dl>
+    {% else %}<p class="muted">No payment recorded yet.</p>{% endif %}
+    {% if can_pay %}
+      <form method="post" action="{% url 'booking_pay' booking.booking_id %}" class="form" style="margin-top:1rem">{% csrf_token %}
+        {% for field in pay_form %}<p>{% if field.field.widget.input_type == 'checkbox' %}<label>{{ field }} {{ field.label }}</label>{% else %}{{ field.label_tag }}{{ field }}{% endif %}</p>{% endfor %}
+        <button class="btn success">Pay ₹{{ booking.total_amount }} (simulated)</button>
+      </form>
+      <p class="small muted">No real payment gateway is used. Booking and payment rows are updated in one transaction.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" id="review">
+  <h3>Review <span class="muted small">(row of <code>reviews</code>, PK = booking_id → at most one per booking)</span></h3>
+  {% if review %}
+    <span class="stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+    <span class="muted small">{{ review.created_at|date:"d M Y" }}</span>
+    {% if review.comment %}<p>{{ review.comment }}</p>{% endif %}
+  {% elif can_review %}
+    <form method="post" action="{% url 'booking_review' booking.booking_id %}" class="form">{% csrf_token %}
+      {% for field in review_form %}<p>{{ field.label_tag }}{{ field }}</p>{% endfor %}
+      <button class="btn">Submit review</button>
+    </form>
+  {% else %}<p class="muted">Reviews can be written after a confirmed booking has been played.</p>{% endif %}
+</div>
+{% endblock %}

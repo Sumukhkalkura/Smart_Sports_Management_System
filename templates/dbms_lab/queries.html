@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}SQL catalogue{% endblock %}
+{% block content %}
+{% include "dbms_lab/_nav.html" %}
+<p class="small muted"><span class="kind select">select</span> runs live, read-only ·
+  <span class="kind sandbox">sandbox</span> write statements executed in a transaction that is always rolled back ·
+  <span class="kind compare">compare</span> two measured query plans side by side</p>
+{% for code, name, items in categories %}
+<div class="card" id="cat-{{ code }}">
+  <h2 class="cat-title" style="margin-top:0"><span class="cat-letter">{{ code }}</span>{{ name }}</h2>
+  <ul class="query-list">
+    {% for q in items %}<li><span class="kind {{ q.kind }}">{{ q.kind }}</span><a href="{% url 'lab_query' q.slug %}">{{ q.title }}</a>
+      <span class="muted small">— {{ q.concept }}</span></li>{% endfor %}
+  </ul>
+</div>
+{% endfor %}
+{% endblock %}

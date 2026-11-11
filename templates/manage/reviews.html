@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Reviews{% endblock %}
+{% block content %}
+<h1>Reviews</h1>
+{% include "manage/_nav.html" %}
+<div class="table-wrap"><table>
+  <thead><tr><th>booking_id (PK)</th><th>Customer (via booking)</th><th>Facility / court</th><th>Rating</th><th>Comment</th><th>Created</th></tr></thead>
+  <tbody>{% for r in page %}
+    <tr><td><a href="{% url 'booking_detail' r.booking_id %}">{{ r.booking_id }}</a></td><td>{{ r.booking.user.name }}</td>
+      <td>{{ r.booking.court.facility.name }} / {{ r.booking.court.court_name }}</td><td><span class="stars">{{ r.rating }}★</span></td>
+      <td>{{ r.comment|default:"–" }}</td><td>{{ r.created_at|date:"d M Y" }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="muted">No reviews.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "manage/_pager.html" %}
+{% endblock %}

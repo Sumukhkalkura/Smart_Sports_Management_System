@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load lab_tags %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Reports</h1>
+{% include "manage/_nav.html" %}
+<p class="muted small">Each report is one SQL query executed live against PostgreSQL. Revenue = payments with status <code>paid</code>; refunds are listed separately.</p>
+{% for r in reports %}
+  <div class="card">
+    <h3>{{ r.title }}</h3>
+    <details><summary class="small">Show SQL</summary><pre class="sql">{{ r.sql }}</pre></details>
+    <div class="table-wrap" style="margin-top:.6rem"><table>
+      <thead><tr>{% for c in r.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in r.rows %}<tr>{% for v in row %}<td>{{ v|cell }}</td>{% endfor %}</tr>{% empty %}<tr><td class="muted">No rows.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    <div class="small muted">{{ r.rows|length }} row{{ r.rows|length|pluralize }}</div>
+  </div>
+{% endfor %}
+{% endblock %}

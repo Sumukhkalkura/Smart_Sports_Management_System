@@ -1,0 +1,31 @@
+{% load lab_tags %}
+{% if result %}
+  {% if result.ok %}
+  <div class="card ok-box">
+    <div class="result-meta">
+      <span>Status: <strong style="color:#1a7f37">success</strong></span>
+      <span>Rows returned: <strong>{{ result.row_count }}</strong>{% if result.truncated %} (limited — more rows exist){% endif %}</span>
+      <span>Columns: <strong>{{ result.columns|length }}</strong></span>
+      <span>Duration: <strong>{{ result.duration_ms|floatformat:2 }} ms</strong></span>
+      {% if result.status %}<span>Command tag: <strong>{{ result.status }}</strong></span>{% endif %}
+    </div>
+    {% if result.is_plan %}
+      {% include "dbms_lab/_plan.html" with res=result %}
+    {% elif result.columns %}
+      <div class="table-wrap" style="max-height:520px">
+        <table>
+          <thead><tr>{% for c in result.columns %}<th>{{ c.name }}<span class="type">{{ c.type }}</span></th>{% endfor %}</tr></thead>
+          <tbody>{% for row in result.rows %}<tr>{% for v in row %}<td>{{ v|cell }}</td>{% endfor %}</tr>
+          {% empty %}<tr><td colspan="{{ result.columns|length }}" class="muted">The query returned an empty relation (0 tuples).</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="card err-box">
+    <div class="result-meta"><span>Status: <strong style="color:#c62828">error</strong></span>
+      {% if result.error_code %}<span>SQLSTATE: <strong>{{ result.error_code }}</strong></span>{% endif %}</div>
+    <pre>{{ result.error }}</pre>
+  </div>
+  {% endif %}
+{% endif %}

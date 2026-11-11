@@ -1,0 +1,43 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Smart Sports{% endblock %} · Smart Sports Management</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="{% url 'home' %}">Smart<span>Sports</span></a>
+    <nav>
+      <a href="{% url 'facility_list' %}">Facilities</a>
+      {% if user.is_authenticated %}
+        {% if user.is_admin %}
+          <a href="{% url 'manage_home' %}">Manage</a>
+          <a href="{% url 'reports' %}">Reports</a>
+          <a href="{% url 'lab_home' %}" class="lab-link">DBMS Lab</a>
+          <a href="{% url 'admin:index' %}">Django admin</a>
+        {% else %}
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          <a href="{% url 'booking_list' %}">My bookings</a>
+        {% endif %}
+        <span class="muted small" style="color:#9aa6ba">{{ user.name }} ({{ user.role }})</span>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="linklike">Log out</button></form>
+      {% else %}
+        <a href="{% url 'login' %}">Log in</a>
+        <a href="{% url 'register' %}">Register</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+<main class="container">
+  {% if messages %}
+    <ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Smart Sports Management System · DBMS course project · PostgreSQL + Django</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

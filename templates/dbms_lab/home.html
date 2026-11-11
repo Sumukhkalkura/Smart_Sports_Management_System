@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}DBMS Lab{% endblock %}
+{% block content %}
+{% include "dbms_lab/_nav.html" %}
+<div class="stats">
+  <div class="stat"><div class="label">Database</div><div class="value" style="font-size:1.1rem">{{ db.database }}</div></div>
+  <div class="stat"><div class="label">Size</div><div class="value" style="font-size:1.1rem">{{ db.size }}</div></div>
+  <div class="stat"><div class="label">Default isolation</div><div class="value" style="font-size:1.1rem">{{ db.isolation }}</div></div>
+  <div class="stat"><div class="label">Time zone</div><div class="value" style="font-size:1.1rem">{{ db.timezone }}</div></div>
+</div>
+<p class="small muted mono">{{ db.version }}</p>
+
+<h2>Relations (tables and views)</h2>
+<p class="small muted">A <strong>relation</strong> is a table: its <em>heading</em> is the set of attributes (columns) with their domains (data types); its <em>body</em> is a set of <strong>tuples</strong> (rows). Row counts below are exact <code>COUNT(*)</code> results.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Relation</th><th>Kind</th><th>Rows</th><th>Columns</th><th>Constraints</th><th>Indexes</th><th>Size</th><th>ER mapping</th></tr></thead>
+  <tbody>{% for r in relations %}
+    <tr><td><a class="mono" href="{% url 'lab_table' r.name %}">{{ r.name }}</a></td><td>{{ r.kind }}</td><td class="num">{{ r.row_count }}</td>
+      <td class="num">{{ r.columns }}</td><td class="num">{{ r.constraints }}</td><td class="num">{{ r.indexes }}</td><td>{{ r.total_size }}</td><td class="small">{{ r.note }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+
+<h2>Relationships (every foreign key, read from pg_constraint)</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Child (referencing)</th><th></th><th>Parent (referenced)</th><th>ON DELETE</th><th>Constraint</th></tr></thead>
+  <tbody>{% for fk in fks %}
+    <tr><td class="mono">{{ fk.from_table }}.{{ fk.from_columns }}</td><td>→</td><td class="mono">{{ fk.to_table }}.{{ fk.to_columns }}</td>
+      <td><span class="badge {% if fk.on_delete == 'CASCADE' %}refunded{% endif %}">{{ fk.on_delete }}</span></td><td class="small mono">{{ fk.name }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+
+<h2>SQL catalogue</h2>
+<div class="grid">
+  {% for code, name, items in categories %}
+  <div class="card"><div class="cat-title"><span class="cat-letter">{{ code }}</span><strong>{{ name }}</strong></div>
+    <p class="small muted">{{ items|length }} example{{ items|length|pluralize }}</p>
+    <a class="btn sm secondary" href="{% url 'lab_queries' %}#cat-{{ code }}">Open</a></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Facilities{% endblock %}
+{% block content %}
+<div class="row"><h1>Facilities</h1><span class="spacer"></span><a class="btn" href="{% url 'manage_facility_new' %}">+ New facility</a></div>
+{% include "manage/_nav.html" %}
+<div class="table-wrap"><table>
+  <thead><tr><th>facility_id</th><th>Name</th><th>City</th><th>Phone</th><th>Address</th><th>Courts</th><th></th></tr></thead>
+  <tbody>{% for f in facilities %}
+    <tr><td>{{ f.facility_id }}</td><td><a href="{% url 'facility_detail' f.facility_id %}">{{ f.name }}</a></td><td>{{ f.city }}</td>
+      <td>{{ f.phone }}</td><td>{{ f.address }}</td><td class="num">{{ f.courts_n }}</td>
+      <td class="row"><a class="btn sm secondary" href="{% url 'manage_facility_edit' f.facility_id %}">Edit</a>
+        <form method="post" class="inline" action="{% url 'manage_facility_delete' f.facility_id %}" onsubmit="return confirm('Delete facility?')">{% csrf_token %}
+          <button class="btn sm danger">Delete</button></form></td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}

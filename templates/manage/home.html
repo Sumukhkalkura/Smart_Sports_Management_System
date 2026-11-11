@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Manage{% endblock %}
+{% block content %}
+<h1>Administration</h1>
+{% include "manage/_nav.html" %}
+<div class="stats">
+  <div class="stat"><div class="label">Facilities</div><div class="value">{{ stats.facilities }}</div></div>
+  <div class="stat"><div class="label">Active courts</div><div class="value">{{ stats.active_courts }}</div></div>
+  <div class="stat"><div class="label">Upcoming bookings</div><div class="value">{{ stats.upcoming_bookings }}</div></div>
+  <div class="stat"><div class="label">Revenue collected</div><div class="value">₹{{ stats.revenue|floatformat:0 }}</div></div>
+  <div class="stat"><div class="label">Customers</div><div class="value">{{ stats.customers }}</div></div>
+</div>
+<div class="card" style="background:#f5f3ff;border-color:#ddd6fe">
+  <div class="row"><div><strong>DBMS Demonstration Lab</strong><div class="small muted">Schema explorer, SQL catalogue, read-only query editor and query plans.</div></div>
+  <span class="spacer"></span><a class="btn purple" href="{% url 'lab_home' %}">Open the DBMS Lab →</a></div>
+</div>
+<h2>Most recently created bookings</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>#</th><th>Customer</th><th>Facility / court</th><th>Start</th><th>Amount</th><th>Status</th><th>Created</th></tr></thead>
+  <tbody>{% for b in recent %}
+    <tr><td><a href="{% url 'booking_detail' b.booking_id %}">{{ b.booking_id }}</a></td><td>{{ b.user.name }}</td>
+    <td>{{ b.court.facility.name }} / {{ b.court.court_name }}</td><td>{{ b.start_time|date:"d M H:i" }}</td>
+    <td class="num">₹{{ b.total_amount }}</td><td><span class="badge {{ b.status }}">{{ b.status }}</span></td><td>{{ b.created_at|date:"d M H:i" }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}

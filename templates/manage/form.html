@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% include "manage/_nav.html" %}
+<div class="card" style="max-width:560px">
+  <form method="post" class="form" novalidate>{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <p>{% if field.field.widget.input_type == 'checkbox' %}<label>{{ field }} {{ field.label }}</label>{% else %}{{ field.label_tag }}{{ field }}{% endif %}
+      {{ field.errors }}</p>
+    {% endfor %}
+    <button class="btn">Save</button> <a class="btn secondary" href="{% url back %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

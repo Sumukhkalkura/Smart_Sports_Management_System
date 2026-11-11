@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ facility.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'facility_list' %}">← All facilities</a></p>
+<h1>{{ facility.name }}</h1>
+<p class="muted">{{ facility.address }}, {{ facility.city }} · ☎ {{ facility.phone }}</p>
+<h2>Courts</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Court</th><th>Sport</th><th>Rate / hour</th><th>Rating</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for c in courts %}
+    <tr>
+      <td>{{ c.court_name }}</td><td>{{ c.sport.name }}</td><td class="num">₹{{ c.hourly_rate }}</td>
+      <td>{% if c.avg_rating %}<span class="stars">★</span> {{ c.avg_rating|floatformat:1 }} <span class="muted small">({{ c.reviews }})</span>{% else %}<span class="muted">–</span>{% endif %}</td>
+      <td>{% if c.is_active %}<span class="badge active">active</span>{% else %}<span class="badge inactive">inactive</span>{% endif %}</td>
+      <td>{% if c.is_active %}<a class="btn sm" href="{% url 'court_detail' c.court_id %}">Availability & book</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="muted">No courts yet.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+
+<h2>Recent reviews</h2>
+{% for r in recent_reviews %}
+  <div class="card"><span class="stars">{% for i in "12345" %}{% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+    <strong>{{ r.booking.user.name }}</strong> <span class="muted small">on {{ r.booking.court.court_name }} · {{ r.created_at|date:"d M Y" }}</span>
+    {% if r.comment %}<div>{{ r.comment }}</div>{% endif %}</div>
+{% empty %}<p class="muted">No reviews yet.</p>{% endfor %}
+{% endblock %}

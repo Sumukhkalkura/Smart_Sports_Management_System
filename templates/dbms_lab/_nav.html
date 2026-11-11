@@ -1,0 +1,12 @@
+{% with p=request.resolver_match.url_name %}
+<div class="lab-header">
+  <h1 style="margin:0">DBMS Demonstration Lab</h1>
+  <p>Live PostgreSQL metadata and real query execution. Editor queries run as the SELECT-only role <code>sports_readonly</code> inside a READ ONLY transaction that is always rolled back.</p>
+</div>
+<nav class="subnav">
+  <a href="{% url 'lab_home' %}" class="{% if p == 'lab_home' %}active{% endif %}">Schema overview</a>
+  <a href="{% url 'lab_queries' %}" class="{% if p == 'lab_queries' or p == 'lab_query' or p == 'lab_sandbox' %}active{% endif %}">SQL catalogue</a>
+  <a href="{% url 'lab_editor' %}" class="{% if p == 'lab_editor' %}active{% endif %}">Query editor</a>
+  <a href="{% url 'lab_table' 'bookings' %}" class="{% if p == 'lab_table' %}active{% endif %}">Table browser</a>
+</nav>
+{% endwith %}

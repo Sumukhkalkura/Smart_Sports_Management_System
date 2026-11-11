@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Maintenance{% endblock %}
+{% block content %}
+<h1>Maintenance</h1>
+{% include "manage/_nav.html" %}
+<div class="grid-2">
+  <div class="card"><h3>Schedule maintenance</h3>
+    <form method="post" class="form" novalidate>{% csrf_token %}{{ form.non_field_errors }}
+      {% for field in form %}<p>{% if field.field.widget.input_type == 'checkbox' %}<label>{{ field }} {{ field.label }}</label>{% else %}{{ field.label_tag }}{{ field }}{% endif %}{{ field.errors }}</p>{% endfor %}
+      <button class="btn">Schedule</button></form></div>
+  <div class="card note"><h3>Policy</h3>
+    <ul class="small">
+      <li>Weak entity: primary key <code>(court_id, start_time)</code>; deleted automatically with its court (<code>ON DELETE CASCADE</code>).</li>
+      <li>Windows of the same court may not overlap (<code>EXCLUDE USING gist</code>).</li>
+      <li>A window may not overlap active bookings (trigger <code>trg_maintenance_not_during_booking</code>). Tick the box to cancel and refund them in the <em>same transaction</em>.</li>
+      <li>New bookings during a window are rejected (trigger <code>trg_bookings_not_during_maintenance</code>).</li>
+    </ul></div>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>court_id</th><th>start_time</th><th>Facility / court</th><th>End</th><th>Reason</th><th>State</th><th></th></tr></thead>
+  <tbody>{% for m in windows %}
+    <tr><td>{{ m.court_id }}</td><td>{{ m.start_time|date:"d M Y H:i" }}</td><td>{{ m.court.facility.name }} / {{ m.court.court_name }}</td>
+      <td>{{ m.end_time|date:"d M Y H:i" }}</td><td>{{ m.reason }}</td>
+      <td>{% if m.end_time < now %}<span class="badge">past</span>{% else %}<span class="badge pending">upcoming</span>{% endif %}</td>
+      <td><form method="post" class="inline" action="{% url 'manage_maintenance_delete' %}" onsubmit="return confirm('Remove window?')">{% csrf_token %}
+        <input type="hidden" name="court_id" value="{{ m.court_id }}"><input type="hidden" name="start_time" value="{{ m.start_time.isoformat }}">
+        <button class="btn sm danger">Remove</button></form></td></tr>
+  {% empty %}<tr><td colspan="7" class="muted">No maintenance windows.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

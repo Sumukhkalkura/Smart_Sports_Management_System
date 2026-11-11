@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ court.court_name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'facility_detail' court.facility_id %}">← {{ court.facility.name }}</a></p>
+<h1>{{ court.court_name }} <span class="badge">{{ court.sport.name }}</span></h1>
+<p class="muted">{{ court.facility.name }}, {{ court.facility.city }} · <strong>₹{{ court.hourly_rate }}</strong> per hour
+  {% if not court.is_active %}· <span class="badge inactive">not accepting bookings</span>{% endif %}</p>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="row">
+      <h3 style="margin:0">Availability on {{ day|date:"D, d M Y" }}</h3><span class="spacer"></span>
+      {% if day > today %}<a class="btn sm secondary" href="?date={{ prev_day|date:'Y-m-d' }}">←</a>{% endif %}
+      <a class="btn sm secondary" href="?date={{ next_day|date:'Y-m-d' }}">→</a>
+    </div>
+    <div class="legend"><span><i style="background:#e9f7ee"></i>free</span><span><i style="background:#fdecec"></i>booked</span>
+      <span><i style="background:#fff4e0"></i>maintenance</span><span><i style="background:#f0f2f5"></i>past</span></div>
+    <div class="slots">
+      {% for s in slots %}<div class="slot {{ s.state }}" data-hour="{{ s.hour }}" title="{{ s.state }}">{{ s.label }}</div>{% endfor %}
+    </div>
+    <p class="small muted">Each slot is computed from the <code>bookings</code> and <code>maintenance</code> rows of this court that overlap the hour.</p>
+  </div>
+
+  <div class="card">
+    <h3>Book this court</h3>
+    {% if court.is_active %}
+    <form method="post" class="form" id="booking-form">{% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}<p>{{ field.label_tag }}{{ field }}{{ field.errors }}</p>{% endfor %}
+      <p class="small muted">Price is calculated on the server: hours × ₹{{ court.hourly_rate }}. Estimated: <strong id="estimate">–</strong></p>
+      {% if user.is_authenticated %}<button class="btn">Create booking</button>
+      {% else %}<a class="btn" href="{% url 'login' %}?next={{ request.path }}">Log in to book</a>{% endif %}
+    </form>
+    {% else %}<p class="muted">This court is inactive.</p>{% endif %}
+    {% if maintenance %}
+      <h3 style="margin-top:1rem">Upcoming maintenance</h3>
+      <ul class="small">{% for m in maintenance %}<li>{{ m.start_time|date:"d M H:i" }} – {{ m.end_time|date:"d M H:i" }}: {{ m.reason }}</li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const rate = {{ court.hourly_rate|stringformat:"s" }};
+  const form = document.getElementById('booking-form');
+  if (!form) return;
+  const hours = form.querySelector('[name=hours]'), start = form.querySelector('[name=start_hour]');
+  const update = () => { document.getElementById('estimate').textContent = '₹' + (rate * parseInt(hours.value || 1)).toFixed(2); };
+  hours.addEventListener('change', update); update();
+  document.querySelectorAll('.slot.free').forEach(el => el.addEventListener('click', () => {
+    start.value = el.dataset.hour; form.querySelector('[name=date]').value = '{{ day|date:"Y-m-d" }}'; update();
+  }));
+})();
+</script>
+{% endblock %}

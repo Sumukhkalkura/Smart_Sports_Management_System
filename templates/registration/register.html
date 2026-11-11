@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="card" style="max-width:460px;margin:2rem auto">
+  <h1>Create an account</h1>
+  <form method="post" class="form" novalidate>{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<p>{{ field.label_tag }}{{ field }}{{ field.errors }}</p>{% endfor %}
+    <button class="btn">Register</button>
+  </form>
+  <p class="small muted">Your password is stored only as a salted PBKDF2 hash in <code>users.password_hash</code>.</p>
+</div>
+{% endblock %}

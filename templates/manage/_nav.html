@@ -1,0 +1,13 @@
+{% with p=request.resolver_match.url_name %}
+<nav class="subnav">
+  <a href="{% url 'manage_home' %}" class="{% if p == 'manage_home' %}active{% endif %}">Overview</a>
+  <a href="{% url 'manage_facilities' %}" class="{% if 'facilit' in p %}active{% endif %}">Facilities</a>
+  <a href="{% url 'manage_courts' %}" class="{% if 'court' in p %}active{% endif %}">Courts</a>
+  <a href="{% url 'manage_sports' %}" class="{% if p == 'manage_sports' %}active{% endif %}">Sports</a>
+  <a href="{% url 'manage_bookings' %}" class="{% if p == 'manage_bookings' %}active{% endif %}">Bookings</a>
+  <a href="{% url 'manage_payments' %}" class="{% if p == 'manage_payments' %}active{% endif %}">Payments</a>
+  <a href="{% url 'manage_reviews' %}" class="{% if p == 'manage_reviews' %}active{% endif %}">Reviews</a>
+  <a href="{% url 'manage_maintenance' %}" class="{% if p == 'manage_maintenance' %}active{% endif %}">Maintenance</a>
+  <a href="{% url 'reports' %}" class="{% if p == 'reports' %}active{% endif %}">Reports</a>
+</nav>
+{% endwith %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Query editor{% endblock %}
+{% block content %}
+{% include "dbms_lab/_nav.html" %}
+<div class="grid-2" style="grid-template-columns: 3fr 1fr">
+  <div>
+    <form method="post">{% csrf_token %}
+      <textarea name="sql" class="sql-editor" spellcheck="false">{{ sql }}</textarea>
+      <div class="row" style="margin-top:.5rem">
+        <button class="btn" name="mode" value="run">Run (Ctrl+Enter)</button>
+        <button class="btn secondary" name="mode" value="explain">EXPLAIN</button>
+        <button class="btn secondary" name="mode" value="analyze">EXPLAIN ANALYZE</button>
+      </div>
+    </form>
+  </div>
+  <div class="card small">
+    <strong>Rules</strong>
+    <ul style="padding-left:1.1rem">
+      <li>One <code>SELECT</code> (or <code>WITH … SELECT</code>, <code>VALUES</code>, <code>EXPLAIN SELECT</code>).</li>
+      <li>Parsed with PostgreSQL's own parser; INSERT/UPDATE/DELETE, DDL, transaction control, writable CTEs, <code>SELECT INTO</code>, <code>FOR UPDATE</code> and risky functions are rejected.</li>
+      <li>Runs as <code>sports_readonly</code> (SELECT-only; cannot read <code>users.password_hash</code>) in a READ ONLY transaction with a statement timeout; max 500 rows shown.</li>
+    </ul>
+    <strong>Relations</strong>
+    <div class="side-list">{% for r in relations %}<div><a class="mono" href="{% url 'lab_table' r %}">{{ r }}</a></div>{% endfor %}</div>
+  </div>
+</div>
+{% if mode %}<h2>Result{% if mode != 'run' %} <span class="muted small">(query plan)</span>{% endif %}</h2>{% endif %}
+{% if rejected %}<div class="card err-box"><strong>Rejected before execution</strong><pre>{{ rejected }}</pre></div>{% endif %}
+{% if result %}<pre class="sql">{{ result.sql }}</pre>{% endif %}
+{% include "dbms_lab/_result.html" %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelector('.sql-editor').addEventListener('keydown', function (e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); this.form.querySelector('[value=run]').click(); }
+  if (e.key === 'Tab') { e.preventDefault(); const s = this.selectionStart; this.setRangeText('    ', s, this.selectionEnd, 'end'); }
+});
+</script>
+{% endblock %}
